@@ -6,3 +6,4 @@ reviews:
     include:
       - main
       - dev
+  language: ko 
