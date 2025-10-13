@@ -1,0 +1,8 @@
+reviews:
+  enabled: true
+  auto_review: true
+  review_status: true
+  branches:
+    include:
+      - main
+      - dev
