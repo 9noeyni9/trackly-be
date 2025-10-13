@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 
@@ -21,9 +22,13 @@ public class HabitController {
     private final HabitService habitService;
 
     @PostMapping
-    public ResponseEntity<CreateHabitResponse> getHabit(@Valid @RequestBody CreateHabitRequest createHabitRequest) {
+    public ResponseEntity<CreateHabitResponse> createHabit(@Valid @RequestBody CreateHabitRequest createHabitRequest) {
         CreateHabitResponse createHabitResponse = habitService.createHabit(createHabitRequest);
-        URI location = URI.create("/api/habit/" + createHabitResponse.getId());
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(createHabitResponse.getId())
+                .toUri();
         return ResponseEntity.created(location).body(createHabitResponse);
     }
 }

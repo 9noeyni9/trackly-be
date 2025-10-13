@@ -1,5 +1,6 @@
 package com.example.tracklybe.domain.habit.entity;
 
+import com.example.tracklybe.domain.common.entity.Timestamped;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +16,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HabitLog {
+public class HabitLog extends Timestamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +24,7 @@ public class HabitLog {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "habit_id", nullable = false)
-    private Habit habitId;
+    private Habit habit;
 
     private LocalDate date;
 
