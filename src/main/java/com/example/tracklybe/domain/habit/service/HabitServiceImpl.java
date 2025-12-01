@@ -5,6 +5,7 @@ import com.example.tracklybe.domain.habit.dto.response.CreateHabitResponse;
 import com.example.tracklybe.domain.habit.dto.response.GetHabitResponse;
 import com.example.tracklybe.domain.habit.entity.Habit;
 import com.example.tracklybe.domain.habit.repository.HabitRepository;
+import com.example.tracklybe.global.exception.HabitNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,7 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     public GetHabitResponse getHabit(Long habitId) {
-        Habit habit = habitRepository.findById(habitId).orElseThrow();
+        Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
         return habit.toResponse();
     }
 
