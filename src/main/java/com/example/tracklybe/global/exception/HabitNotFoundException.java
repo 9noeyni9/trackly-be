@@ -1,9 +1,7 @@
 package com.example.tracklybe.global.exception;
 
 import com.example.tracklybe.global.exception.enumeration.ErrorCode;
-import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor
 public class HabitNotFoundException extends RuntimeException {
 
     private final ErrorCode errorCode;
