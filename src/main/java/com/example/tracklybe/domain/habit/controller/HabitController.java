@@ -50,4 +50,10 @@ public class HabitController {
         GetHabitResponse updateGetHabitResponse = habitService.updateHabit(updateHabitRequest, habitId);
         return ResponseEntity.ok().body(updateGetHabitResponse);
     }
+
+    @DeleteMapping("/{habitId}")
+    public ResponseEntity<Void> deleteHabit(@PathVariable Long habitId) {
+        habitService.deleteHabit(habitId);
+        return ResponseEntity.noContent().build();
+    }
 }

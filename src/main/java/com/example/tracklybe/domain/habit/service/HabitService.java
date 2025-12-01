@@ -13,4 +13,5 @@ public interface HabitService {
     GetHabitResponse getHabit(Long habitId);
     List<GetHabitResponse> getAllHabits();
     GetHabitResponse updateHabit(UpdateHabitRequest updateHabitRequest, Long habitId);
+    void deleteHabit(Long habitId);
 }

@@ -53,4 +53,10 @@ public class HabitServiceImpl implements HabitService {
         habit.update(updateHabitRequest);
         return habit.toResponse();
     }
+
+    @Override
+    public void deleteHabit(Long habitId) {
+        Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
+        habitRepository.delete(habit);
+    }
 }
