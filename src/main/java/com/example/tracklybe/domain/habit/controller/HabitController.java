@@ -1,6 +1,7 @@
 package com.example.tracklybe.domain.habit.controller;
 
 import com.example.tracklybe.domain.habit.dto.request.CreateHabitRequest;
+import com.example.tracklybe.domain.habit.dto.request.UpdateHabitRequest;
 import com.example.tracklybe.domain.habit.dto.response.CreateHabitResponse;
 import com.example.tracklybe.domain.habit.dto.response.GetHabitResponse;
 import com.example.tracklybe.domain.habit.service.HabitService;
@@ -41,5 +42,12 @@ public class HabitController {
     public ResponseEntity<List<GetHabitResponse>> getAllHabits() {
         List<GetHabitResponse> getHabitResponseList = habitService.getAllHabits();
         return ResponseEntity.ok().body(getHabitResponseList);
+    }
+
+    @PatchMapping("/{habitId}")
+    public ResponseEntity<GetHabitResponse> updateHabit(@Valid @RequestBody UpdateHabitRequest updateHabitRequest,
+                                                        @PathVariable Long habitId) {
+        GetHabitResponse updateGetHabitResponse = habitService.updateHabit(updateHabitRequest, habitId);
+        return ResponseEntity.ok().body(updateGetHabitResponse);
     }
 }
