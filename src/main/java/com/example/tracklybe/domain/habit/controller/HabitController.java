@@ -45,7 +45,7 @@ public class HabitController {
     }
 
     @PatchMapping("/{habitId}")
-    public ResponseEntity<GetHabitResponse> updateHabit(@RequestBody UpdateHabitRequest updateHabitRequest,
+    public ResponseEntity<GetHabitResponse> updateHabit(@Valid @RequestBody UpdateHabitRequest updateHabitRequest,
                                                         @PathVariable Long habitId) {
         GetHabitResponse updateGetHabitResponse = habitService.updateHabit(updateHabitRequest, habitId);
         return ResponseEntity.ok().body(updateGetHabitResponse);
