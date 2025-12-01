@@ -1,4 +1,4 @@
-package com.example.tracklybe.global.exception.enummeration;
+package com.example.tracklybe.global.exception.enumeration;
 
 import org.springframework.http.HttpStatus;
 

@@ -1,7 +1,7 @@
 package com.example.tracklybe.global.exception.handler;
 
 import com.example.tracklybe.global.exception.HabitNotFoundException;
-import com.example.tracklybe.global.exception.enummeration.ErrorCode;
+import com.example.tracklybe.global.exception.enumeration.ErrorCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex) {
-        return buildErrorResponse(ErrorCode.INTERNAL_SERVER_ERROR, ex.getMessage());
+        return buildErrorResponse(ErrorCode.INTERNAL_SERVER_ERROR, "예기치 않은 오류가 발생했습니다.");
     }
 
     private ResponseEntity<Map<String, Object>> buildErrorResponse(ErrorCode errorCode, String detailMessage) {
