@@ -8,6 +8,7 @@ import com.example.tracklybe.domain.habit.service.HabitService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -22,6 +23,7 @@ public class HabitController {
     private final HabitService habitService;
 
     @PostMapping
+    @Transactional
     public ResponseEntity<CreateHabitResponse> createHabit(@Valid @RequestBody CreateHabitRequest createHabitRequest) {
         CreateHabitResponse createHabitResponse = habitService.createHabit(createHabitRequest);
         URI location = ServletUriComponentsBuilder
@@ -45,9 +47,17 @@ public class HabitController {
     }
 
     @PatchMapping("/{habitId}")
+    @Transactional
     public ResponseEntity<GetHabitResponse> updateHabit(@Valid @RequestBody UpdateHabitRequest updateHabitRequest,
                                                         @PathVariable Long habitId) {
         GetHabitResponse updateGetHabitResponse = habitService.updateHabit(updateHabitRequest, habitId);
         return ResponseEntity.ok().body(updateGetHabitResponse);
+    }
+
+    @DeleteMapping("/{habitId}")
+    @Transactional
+    public ResponseEntity<Void> deleteHabit(@PathVariable Long habitId) {
+        habitService.deleteHabit(habitId);
+        return ResponseEntity.noContent().build();
     }
 }
