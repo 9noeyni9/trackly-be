@@ -1,6 +1,7 @@
 package com.example.tracklybe.domain.habit.service;
 
 import com.example.tracklybe.domain.habit.dto.request.CreateHabitRequest;
+import com.example.tracklybe.domain.habit.dto.request.UpdateHabitRequest;
 import com.example.tracklybe.domain.habit.dto.response.CreateHabitResponse;
 import com.example.tracklybe.domain.habit.dto.response.GetHabitResponse;
 import com.example.tracklybe.domain.habit.entity.Habit;
@@ -44,5 +45,12 @@ public class HabitServiceImpl implements HabitService {
         return habitRepository.findAll().stream()
                 .map(Habit::toResponse)
                 .toList();
+    }
+
+    @Override
+    public GetHabitResponse updateHabit(UpdateHabitRequest updateHabitRequest, Long habitId) {
+        Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
+        habit.update(updateHabitRequest);
+        return habit.toResponse();
     }
 }

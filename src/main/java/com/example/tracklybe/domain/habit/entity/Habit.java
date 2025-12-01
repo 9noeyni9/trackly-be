@@ -1,6 +1,7 @@
 package com.example.tracklybe.domain.habit.entity;
 
 import com.example.tracklybe.domain.common.entity.Timestamped;
+import com.example.tracklybe.domain.habit.dto.request.UpdateHabitRequest;
 import com.example.tracklybe.domain.habit.dto.response.GetHabitResponse;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -43,5 +44,13 @@ public class Habit extends Timestamped {
                 .startDate(this.startDate)
                 .endDate(this.endDate)
                 .build();
+    }
+
+    public void update(UpdateHabitRequest updateHabitRequest) {
+        this.title = updateHabitRequest.getTitle();
+        this.description = updateHabitRequest.getDescription();
+        this.habitFrequency = updateHabitRequest.getHabitFrequency();
+        this.startDate = updateHabitRequest.getStartDate();
+        this.endDate = updateHabitRequest.getEndDate();
     }
 }
