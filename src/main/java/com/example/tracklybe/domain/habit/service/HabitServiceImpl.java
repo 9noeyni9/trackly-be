@@ -56,7 +56,7 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     public void deleteHabit(Long habitId) {
-        if(habitRepository.findById(habitId).isEmpty()) throw new HabitNotFoundException(habitId);
-        habitRepository.deleteById(habitId);
+        Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
+        habitRepository.delete(habit);
     }
 }
