@@ -45,4 +45,18 @@ public class HabitLog extends Timestamped {
                 .completedAt(this.completedAt)
                 .build();
     }
+
+    public void update(boolean completed, String note) {
+        this.completed = completed;
+
+        if (completed) {
+            if (this.completedAt == null) {
+                this.completedAt = LocalTime.now();
+            }
+        } else {
+            this.completedAt = null;
+        }
+
+        this.note = note;
+    }
 }

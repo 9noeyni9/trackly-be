@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -75,13 +74,13 @@ public class HabitServiceImpl implements HabitService {
         LocalDate today = LocalDate.now();
 
         HabitLog habitLog = habitLogRepository.findByHabitIdAndDate(habitId, today)
-                .orElse(HabitLog.builder()
+                .orElseGet(() -> HabitLog.builder()
                         .habit(habit)
                         .date(today)
-                        .completed(habitLogRequest.isCompleted())
-                        .completedAt(habitLogRequest.isCompleted() ? LocalTime.now() : null)
-                        .note(habitLogRequest.getNote())
+                        .completed(false)
                         .build());
+
+        habitLog.update(habitLogRequest.isCompleted(), habitLogRequest.getNote());
 
         habitLogRepository.save(habitLog);
 
