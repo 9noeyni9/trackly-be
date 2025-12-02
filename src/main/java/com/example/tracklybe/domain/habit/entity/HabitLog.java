@@ -1,6 +1,7 @@
 package com.example.tracklybe.domain.habit.entity;
 
 import com.example.tracklybe.domain.common.entity.Timestamped;
+import com.example.tracklybe.domain.habit.dto.response.HabitLogResponse;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -34,4 +35,14 @@ public class HabitLog extends Timestamped {
     private LocalTime completedAt;
 
     private String note;
+
+    public HabitLogResponse toResponse() {
+        return HabitLogResponse.builder()
+                .habitId(this.habit.getId())
+                .title(this.habit.getTitle())
+                .completed(this.completed)
+                .note(this.note)
+                .completedAt(this.completedAt)
+                .build();
+    }
 }

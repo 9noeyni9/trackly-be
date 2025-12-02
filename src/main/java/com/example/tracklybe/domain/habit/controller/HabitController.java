@@ -1,9 +1,11 @@
 package com.example.tracklybe.domain.habit.controller;
 
 import com.example.tracklybe.domain.habit.dto.request.CreateHabitRequest;
+import com.example.tracklybe.domain.habit.dto.request.HabitLogRequest;
 import com.example.tracklybe.domain.habit.dto.request.UpdateHabitRequest;
 import com.example.tracklybe.domain.habit.dto.response.CreateHabitResponse;
 import com.example.tracklybe.domain.habit.dto.response.GetHabitResponse;
+import com.example.tracklybe.domain.habit.dto.response.HabitLogResponse;
 import com.example.tracklybe.domain.habit.service.HabitService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -55,5 +57,15 @@ public class HabitController {
     public ResponseEntity<Void> deleteHabit(@PathVariable Long habitId) {
         habitService.deleteHabit(habitId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{habitId}/logs/today")
+    public ResponseEntity<HabitLogResponse> toggleToday(
+            @PathVariable Long habitId,
+            @RequestBody HabitLogRequest habitLogRequest
+    ) {
+        HabitLogResponse habitLogResponse = habitService.toggleToday(habitId, habitLogRequest);
+
+        return ResponseEntity.ok().body(habitLogResponse);
     }
 }
