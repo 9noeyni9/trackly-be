@@ -1,8 +1,17 @@
 package com.example.tracklybe.domain.habit.entity;
 
 import com.example.tracklybe.domain.common.entity.Timestamped;
+import com.example.tracklybe.domain.habit.dto.request.HabitLogRequest;
 import com.example.tracklybe.domain.habit.dto.response.HabitLogResponse;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -46,8 +55,21 @@ public class HabitLog extends Timestamped {
                 .build();
     }
 
-    public void update(boolean completed, String note) {
-        this.completed = completed;
+    public static HabitLog create(Habit habit, LocalDate today) {
+        if (habit == null) throw new IllegalArgumentException("habit is null");
+        if (today == null) throw new IllegalArgumentException("today is null");
+
+        return HabitLog.builder()
+                .habit(habit)
+                .date(today)
+                .completed(false)
+                .completedAt(null)
+                .note(null)
+                .build();
+    }
+
+    public void update(HabitLogRequest habitLogRequest) {
+        this.completed = habitLogRequest.isCompleted();
 
         if (completed) {
             if (this.completedAt == null) {
@@ -57,6 +79,6 @@ public class HabitLog extends Timestamped {
             this.completedAt = null;
         }
 
-        this.note = note;
+        this.note = habitLogRequest.getNote();
     }
 }

@@ -1,16 +1,21 @@
 package com.example.tracklybe.domain.habit.controller;
 
 import com.example.tracklybe.domain.habit.dto.request.CreateHabitRequest;
-import com.example.tracklybe.domain.habit.dto.request.HabitLogRequest;
 import com.example.tracklybe.domain.habit.dto.request.UpdateHabitRequest;
 import com.example.tracklybe.domain.habit.dto.response.CreateHabitResponse;
 import com.example.tracklybe.domain.habit.dto.response.GetHabitResponse;
-import com.example.tracklybe.domain.habit.dto.response.HabitLogResponse;
 import com.example.tracklybe.domain.habit.service.HabitService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -18,7 +23,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/habit")
+@RequestMapping("/api/habits")
 public class HabitController {
 
     private final HabitService habitService;
@@ -57,15 +62,5 @@ public class HabitController {
     public ResponseEntity<Void> deleteHabit(@PathVariable Long habitId) {
         habitService.deleteHabit(habitId);
         return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{habitId}/logs/today")
-    public ResponseEntity<HabitLogResponse> toggleToday(
-            @PathVariable Long habitId,
-            @RequestBody HabitLogRequest habitLogRequest
-    ) {
-        HabitLogResponse habitLogResponse = habitService.toggleToday(habitId, habitLogRequest);
-
-        return ResponseEntity.ok().body(habitLogResponse);
     }
 }
