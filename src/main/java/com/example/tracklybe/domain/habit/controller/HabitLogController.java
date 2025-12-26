@@ -1,14 +1,13 @@
 package com.example.tracklybe.domain.habit.controller;
 
+import com.example.tracklybe.domain.habit.dto.request.HabitLogRequest;
 import com.example.tracklybe.domain.habit.dto.response.GetHabitLogResponse;
+import com.example.tracklybe.domain.habit.dto.response.HabitLogResponse;
 import com.example.tracklybe.domain.habit.service.HabitLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
@@ -18,6 +17,16 @@ import java.time.LocalDate;
 public class HabitLogController {
 
     private final HabitLogService habitLogService;
+
+    @PutMapping("/today")
+    public ResponseEntity<HabitLogResponse> toggleToday(
+            @PathVariable Long habitId,
+            @RequestBody HabitLogRequest habitLogRequest
+    ) {
+        HabitLogResponse habitLogResponse = habitLogService.toggleToday(habitId, habitLogRequest);
+
+        return ResponseEntity.ok().body(habitLogResponse);
+    }
 
     @GetMapping("/{date}")
     public ResponseEntity<GetHabitLogResponse> getHabitLogByDate(

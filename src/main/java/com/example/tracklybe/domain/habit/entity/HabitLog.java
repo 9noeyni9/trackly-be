@@ -1,6 +1,7 @@
 package com.example.tracklybe.domain.habit.entity;
 
 import com.example.tracklybe.domain.common.entity.Timestamped;
+import com.example.tracklybe.domain.habit.dto.request.HabitLogRequest;
 import com.example.tracklybe.domain.habit.dto.response.HabitLogResponse;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,7 +25,7 @@ public class HabitLog extends Timestamped {
     private Long habitLogId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "habit_id", nullable = false)
+    @JoinColumn(name = "habit_id")
     private Habit habit;
 
     private LocalDate date;
@@ -46,8 +47,21 @@ public class HabitLog extends Timestamped {
                 .build();
     }
 
-    public void update(boolean completed, String note) {
-        this.completed = completed;
+    public static HabitLog create(Habit habit, LocalDate today) {
+        if (habit == null) throw new IllegalArgumentException("habit is null");
+        if (today == null) throw new IllegalArgumentException("today is null");
+
+        return HabitLog.builder()
+                .habit(habit)
+                .date(today)
+                .completed(false)
+                .completedAt(null)
+                .note(null)
+                .build();
+    }
+
+    public void update(HabitLogRequest habitLogRequest) {
+        this.completed = habitLogRequest.isCompleted();
 
         if (completed) {
             if (this.completedAt == null) {
@@ -57,6 +71,6 @@ public class HabitLog extends Timestamped {
             this.completedAt = null;
         }
 
-        this.note = note;
+        this.note = habitLogRequest.getNote();
     }
 }
