@@ -66,6 +66,6 @@ public class HabitLogServiceImpl implements HabitLogService {
         HabitLog habitLog = habitLogRepository.findByHabitAndDate(habit, date)
                 .orElseThrow(() -> new HabitLogNotFoundException(habit.getId(), date));
 
-        habitLogRepository.deleteByHabitLogId(habitLog.getHabitLogId());
+        habitLogRepository.delete(habitLog);
     }
 }
