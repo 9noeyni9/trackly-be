@@ -73,12 +73,7 @@ public class HabitServiceImpl implements HabitService {
 
         LocalDate today = LocalDate.now();
 
-        HabitLog habitLog = habitLogRepository.findByHabitIdAndDate(habitId, today)
-                .orElseGet(() -> HabitLog.builder()
-                        .habit(habit)
-                        .date(today)
-                        .completed(false)
-                        .build());
+        HabitLog habitLog = habitLogRepository.findByHabitAndDate(habit, today);
 
         habitLog.update(habitLogRequest.isCompleted(), habitLogRequest.getNote());
 
