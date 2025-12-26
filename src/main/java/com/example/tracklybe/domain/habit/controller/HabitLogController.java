@@ -7,6 +7,7 @@ import com.example.tracklybe.domain.habit.service.HabitLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,5 +47,14 @@ public class HabitLogController {
     public ResponseEntity<List<HabitLogResponse>> getAllHabitLogs() {
         List<HabitLogResponse> habitLogList = habitLogService.getAllHabitLogs();
         return ResponseEntity.ok().body(habitLogList);
+    }
+
+    @DeleteMapping("/{habitId}/logs/{date}")
+    public ResponseEntity<Void> deleteHabitLogByDate(
+            @PathVariable Long habitId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
+    ) {
+        habitLogService.deleteHabitLogByDate(habitId, date);
+        return ResponseEntity.noContent().build();
     }
 }

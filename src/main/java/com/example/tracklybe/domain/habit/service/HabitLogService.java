@@ -12,4 +12,5 @@ public interface HabitLogService {
     HabitLogResponse toggleToday(Long habitId, HabitLogRequest habitLogRequest);
     GetHabitLogResponse getHabitLogByDate(Long habitId, LocalDate date);
     List<HabitLogResponse> getAllHabitLogs();
+    void deleteHabitLogByDate(Long habitId, LocalDate date);
 }

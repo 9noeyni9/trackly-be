@@ -5,7 +5,6 @@ import com.example.tracklybe.domain.habit.dto.request.UpdateHabitRequest;
 import com.example.tracklybe.domain.habit.dto.response.CreateHabitResponse;
 import com.example.tracklybe.domain.habit.dto.response.GetHabitResponse;
 import com.example.tracklybe.domain.habit.entity.Habit;
-import com.example.tracklybe.domain.habit.repository.HabitLogRepository;
 import com.example.tracklybe.domain.habit.repository.HabitRepository;
 import com.example.tracklybe.global.exception.HabitNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +19,6 @@ import java.util.List;
 public class HabitServiceImpl implements HabitService {
 
     private final HabitRepository habitRepository;
-    private final HabitLogRepository habitLogRepository;
-
 
     @Override
     public CreateHabitResponse createHabit(CreateHabitRequest createHabitRequest) {

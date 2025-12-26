@@ -57,4 +57,15 @@ public class HabitLogServiceImpl implements HabitLogService {
                 .map(HabitLog::toResponse)
                 .toList();
     }
+
+    @Override
+    public void deleteHabitLogByDate(Long habitId, LocalDate date) {
+        Habit habit = habitRepository.findById(habitId)
+                .orElseThrow(() -> new HabitNotFoundException(habitId));
+
+        HabitLog habitLog = habitLogRepository.findByHabitAndDate(habit, date)
+                .orElseThrow(() -> new HabitLogNotFoundException(habit.getId(), date));
+
+        habitLogRepository.delete(habitLog);
+    }
 }

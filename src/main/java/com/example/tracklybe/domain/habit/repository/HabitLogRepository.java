@@ -8,5 +8,6 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 public interface HabitLogRepository extends JpaRepository<HabitLog,Long> {
+
     Optional<HabitLog> findByHabitAndDate(Habit habit, LocalDate date);
 }
