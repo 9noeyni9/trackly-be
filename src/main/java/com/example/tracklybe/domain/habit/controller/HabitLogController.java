@@ -7,7 +7,12 @@ import com.example.tracklybe.domain.habit.service.HabitLogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -19,7 +24,7 @@ public class HabitLogController {
 
     private final HabitLogService habitLogService;
 
-    @PutMapping("/{habitId}/logs/today")
+    @PatchMapping("/{habitId}/logs/today")
     public ResponseEntity<HabitLogResponse> toggleToday(
             @PathVariable Long habitId,
             @RequestBody HabitLogRequest habitLogRequest

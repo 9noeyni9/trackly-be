@@ -3,7 +3,15 @@ package com.example.tracklybe.domain.habit.entity;
 import com.example.tracklybe.domain.common.entity.Timestamped;
 import com.example.tracklybe.domain.habit.dto.request.HabitLogRequest;
 import com.example.tracklybe.domain.habit.dto.response.HabitLogResponse;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,7 +33,7 @@ public class HabitLog extends Timestamped {
     private Long habitLogId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "habit_id")
+    @JoinColumn(name = "habit_id", nullable = false)
     private Habit habit;
 
     private LocalDate date;

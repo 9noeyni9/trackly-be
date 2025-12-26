@@ -6,6 +6,7 @@ public enum ErrorCode {
 
     // Habit 관련
     HABIT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 ID의 습관을 찾을 수 없습니다."),
+    HABITLOG_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 ID의 습관 로그를 찾을 수 없습니다."),
 
     // 공통
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다."),

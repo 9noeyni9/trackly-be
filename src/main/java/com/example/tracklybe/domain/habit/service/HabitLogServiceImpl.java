@@ -7,14 +7,17 @@ import com.example.tracklybe.domain.habit.entity.Habit;
 import com.example.tracklybe.domain.habit.entity.HabitLog;
 import com.example.tracklybe.domain.habit.repository.HabitLogRepository;
 import com.example.tracklybe.domain.habit.repository.HabitRepository;
+import com.example.tracklybe.global.exception.HabitLogNotFoundException;
 import com.example.tracklybe.global.exception.HabitNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class HabitLogServiceImpl implements HabitLogService {
 
@@ -40,10 +43,10 @@ public class HabitLogServiceImpl implements HabitLogService {
     public GetHabitLogResponse getHabitLogByDate(Long habitId, LocalDate date) {
 
         Habit habit = habitRepository.findById(habitId)
-                .orElseThrow(() -> new IllegalArgumentException("습관이 존재하지 않습니다."));
+                .orElseThrow(() -> new HabitNotFoundException(habitId));
 
         HabitLog habitLog = habitLogRepository.findByHabitAndDate(habit, date)
-                .orElseThrow(() -> new HabitNotFoundException(habitId));
+                .orElseThrow(() -> new HabitLogNotFoundException(habit.getId(), date));
 
         return GetHabitLogResponse.from(habitLog);
     }
