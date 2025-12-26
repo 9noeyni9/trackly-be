@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -45,5 +46,12 @@ public class HabitLogServiceImpl implements HabitLogService {
                 .orElseThrow(() -> new HabitNotFoundException(habitId));
 
         return GetHabitLogResponse.from(habitLog);
+    }
+
+    @Override
+    public List<HabitLogResponse> getAllHabitLogs() {
+        return habitLogRepository.findAll().stream()
+                .map(HabitLog::toResponse)
+                .toList();
     }
 }

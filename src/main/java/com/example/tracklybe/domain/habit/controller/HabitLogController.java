@@ -10,15 +10,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/habits/{habitId}/logs")
+@RequestMapping("/api/habits")
 @RequiredArgsConstructor
 public class HabitLogController {
 
     private final HabitLogService habitLogService;
 
-    @PutMapping("/today")
+    @PutMapping("/{habitId}/logs/today")
     public ResponseEntity<HabitLogResponse> toggleToday(
             @PathVariable Long habitId,
             @RequestBody HabitLogRequest habitLogRequest
@@ -28,11 +29,17 @@ public class HabitLogController {
         return ResponseEntity.ok().body(habitLogResponse);
     }
 
-    @GetMapping("/{date}")
+    @GetMapping("/{habitId}/logs/{date}")
     public ResponseEntity<GetHabitLogResponse> getHabitLogByDate(
             @PathVariable Long habitId,
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
         return ResponseEntity.ok(habitLogService.getHabitLogByDate(habitId, date));
+    }
+
+    @GetMapping("/logs")
+    public ResponseEntity<List<HabitLogResponse>> getAllHabitLogs() {
+        List<HabitLogResponse> habitLogList = habitLogService.getAllHabitLogs();
+        return ResponseEntity.ok().body(habitLogList);
     }
 }
