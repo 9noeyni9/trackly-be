@@ -1,9 +1,11 @@
 package com.example.tracklybe.global.exception;
 
 import com.example.tracklybe.global.exception.enumeration.ErrorCode;
+import lombok.Getter;
 
 import java.time.LocalDate;
 
+@Getter
 public class HabitLogNotFoundException extends RuntimeException {
 
     private final ErrorCode errorCode;
@@ -12,6 +14,4 @@ public class HabitLogNotFoundException extends RuntimeException {
         super("HabitLog not found. habitId=" + habitId + ", date=" + date);
         this.errorCode = ErrorCode.HABITLOG_NOT_FOUND;
     }
-
-    public ErrorCode getErrorCode() { return  errorCode;}
 }
