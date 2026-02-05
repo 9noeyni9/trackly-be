@@ -5,7 +5,12 @@ import com.example.tracklybe.domain.habit.dto.request.UpdateHabitRequest;
 import com.example.tracklybe.domain.habit.dto.response.CreateHabitResponse;
 import com.example.tracklybe.domain.habit.dto.response.GetHabitResponse;
 import com.example.tracklybe.domain.habit.entity.Habit;
+import com.example.tracklybe.domain.habit.entity.HabitLog;
+import com.example.tracklybe.domain.habit.entity.HabitTag;
 import com.example.tracklybe.domain.habit.repository.HabitRepository;
+import com.example.tracklybe.domain.habit.repository.HabitTagRepository;
+import com.example.tracklybe.domain.tag.entity.Tag;
+import com.example.tracklybe.domain.tag.service.TagService;
 import com.example.tracklybe.global.exception.HabitNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +24,8 @@ import java.util.List;
 public class HabitServiceImpl implements HabitService {
 
     private final HabitRepository habitRepository;
+    private final HabitTagRepository habitTagRepository;
+    private final TagService tagService;
 
     @Override
     public CreateHabitResponse createHabit(CreateHabitRequest createHabitRequest) {
@@ -30,6 +37,16 @@ public class HabitServiceImpl implements HabitService {
                 .endDate(createHabitRequest.getEndDate())
                 .build();
         Habit savedHabit = habitRepository.save(habit);
+
+        List<Tag> tags = tagService.getOrCreateAll(createHabitRequest.getTags());
+        if(!tags.isEmpty()) {
+            List<HabitTag> links = tags.stream()
+                    .map(name -> HabitTag.builder()
+                            .habit(savedHabit)
+                            .build())
+                    .toList();
+            habitTagRepository.saveAll(links);
+        }
         return new CreateHabitResponse(savedHabit);
     }
 

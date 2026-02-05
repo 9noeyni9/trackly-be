@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 public class CreateHabitRequest {
@@ -17,4 +18,6 @@ public class CreateHabitRequest {
     private HabitFrequency habitFrequency;
     private LocalDate startDate;
     private LocalDate endDate;
+
+    private List<String> tags;
 }
