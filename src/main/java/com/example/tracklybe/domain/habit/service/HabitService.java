@@ -14,4 +14,6 @@ public interface HabitService {
     List<GetHabitResponse> getAllHabits();
     GetHabitResponse updateHabit(UpdateHabitRequest updateHabitRequest, Long habitId);
     void deleteHabit(Long habitId);
+    void detachTag(Long habitId, String tagName);
+    void updateTags(Long habitId, List<String> requestedTagNames);
 }

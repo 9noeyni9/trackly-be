@@ -22,7 +22,7 @@ public class TagServiceImpl implements TagService {
 
         String raw = name.trim();
 
-        return tagRepository.findByName(raw).orElseGet(() -> tagRepository.save(Tag.builder().name(name).build()));
+        return tagRepository.findByName(raw).orElseGet(() -> tagRepository.save(Tag.builder().name(raw).build()));
     }
 
     @Override

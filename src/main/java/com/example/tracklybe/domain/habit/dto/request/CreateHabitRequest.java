@@ -18,6 +18,5 @@ public class CreateHabitRequest {
     private HabitFrequency habitFrequency;
     private LocalDate startDate;
     private LocalDate endDate;
-
     private List<String> tags;
 }
