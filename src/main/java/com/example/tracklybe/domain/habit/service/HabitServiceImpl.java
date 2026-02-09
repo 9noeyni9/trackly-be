@@ -16,7 +16,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,7 +43,7 @@ public class HabitServiceImpl implements HabitService {
         Habit savedHabit = habitRepository.save(habit);
 
         List<Tag> tags = tagService.getOrCreateAll(createHabitRequest.getTags());
-        if(!tags.isEmpty()) {
+        if (!tags.isEmpty()) {
             List<HabitTag> links = tags.stream()
                     .map(tag -> HabitTag.builder()
                             .habit(savedHabit)
@@ -50,7 +52,7 @@ public class HabitServiceImpl implements HabitService {
                     .toList();
             habitTagRepository.saveAll(links);
         }
-        return new CreateHabitResponse(savedHabit);
+        return new CreateHabitResponse(savedHabit, tags);
     }
 
     @Override
@@ -93,6 +95,8 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     public void updateTags(Long habitId, List<String> requestedTagNames) {
+        if(requestedTagNames == null) return;
+
         Habit habit = habitRepository.findById(habitId)
                 .orElseThrow(() -> new HabitNotFoundException(habitId));
 
@@ -109,22 +113,16 @@ public class HabitServiceImpl implements HabitService {
         Set<String> toAdd = new HashSet<>(newTags);
         toAdd.removeAll(oldTags);
 
-        if(!toRemove.isEmpty()) {
-            Map<String, Tag> existed = tagRepository.findByNameIn(toAdd.stream().toList()).stream()
-                    .collect(Collectors.toMap(Tag::getName, t -> t));
+        if (!toRemove.isEmpty()) {
+            habitTagRepository.deleteByHabitIdAndTagNames(habitId, toRemove);
+        }
 
-            List<HabitTag> newLinlks = new ArrayList<>();
-            for(String name : toAdd) {
-                Tag tag = existed.get(name);
-                if(tag == null) {
-                    tag = tagRepository.save(Tag.builder().name(name).build());
-                }
-                newLinlks.add(HabitTag.builder()
-                        .habit(habit)
-                        .tag(tag)
-                        .build());
-            }
-            habitTagRepository.saveAll(newLinlks);
+        if (!toAdd.isEmpty()) {
+            List<Tag> tags = tagService.getOrCreateAll(toAdd);
+            List<HabitTag> links = tags.stream()
+                    .map(tag -> HabitTag.builder().habit(habit).tag(tag).build())
+                    .toList();
+            habitTagRepository.saveAll(links);
         }
     }
 }
