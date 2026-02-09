@@ -33,4 +33,6 @@ public interface HabitTagRepository extends JpaRepository<HabitTag, Long> {
             """)
     int deleteByHabitIdAndTagNames(@Param("habitId") Long habitId,
                                    @Param("tagNames") Collection<String> tagNames);
+
+    void deleteByHabit(Habit habit);
 }

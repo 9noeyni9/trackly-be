@@ -79,6 +79,7 @@ public class HabitServiceImpl implements HabitService {
     @Override
     public void deleteHabit(Long habitId) {
         Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
+        habitTagRepository.deleteByHabit(habit);
         habitRepository.delete(habit);
     }
 
