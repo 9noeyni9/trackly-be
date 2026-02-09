@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 @Repository
@@ -24,6 +25,14 @@ public interface HabitTagRepository extends JpaRepository<HabitTag, Long> {
             where ht.habit.id = :habitId
             """)
     Set<String> findTagNamesByHabitId(Long habitId);
+
+    @Query("""
+        select ht.habit.id, t.name
+        from HabitTag ht
+        join ht.tag t
+        where ht.habit.id in :habitIds
+    """)
+    List<Object[]> findHabitIdAndTagNameByHabitIds(@Param("habitIds") List<Long> habitIds);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("""

@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -58,13 +59,24 @@ public class HabitServiceImpl implements HabitService {
     @Override
     public GetHabitResponse getHabit(Long habitId) {
         Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
-        return habit.toResponse();
+        Set<String> tags = habitTagRepository.findTagNamesByHabitId(habitId);
+        return habit.toResponse(tags);
     }
 
     @Override
     public List<GetHabitResponse> getAllHabits() {
-        return habitRepository.findAll().stream()
-                .map(Habit::toResponse)
+        List<Habit> habits = habitRepository.findAll();
+        List<Long> habitIds = habits.stream().map(Habit::getId).toList();
+
+        Map<Long, Set<String>> tagsByHabitId =
+                habitTagRepository.findHabitIdAndTagNameByHabitIds(habitIds).stream()
+                        .collect(Collectors.groupingBy(
+                                row -> (Long) row[0],
+                                Collectors.mapping(row -> (String) row[1], Collectors.toSet())
+                        ));
+
+        return habits.stream()
+                .map(h -> h.toResponse(tagsByHabitId.getOrDefault(h.getId(), Set.of())))
                 .toList();
     }
 
@@ -73,7 +85,10 @@ public class HabitServiceImpl implements HabitService {
         Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
         habit.update(updateHabitRequest);
         updateTags(habitId, updateHabitRequest.getTags());
-        return habit.toResponse();
+        Set<String> tags = updateHabitRequest.getTags() == null
+                ? Set.of()
+                : new HashSet<>(updateHabitRequest.getTags());
+        return habit.toResponse(tags);
     }
 
     @Override

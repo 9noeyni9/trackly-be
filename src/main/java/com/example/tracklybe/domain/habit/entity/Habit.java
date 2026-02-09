@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Entity
 @Table
@@ -42,7 +43,7 @@ public class Habit extends Timestamped {
     private LocalDate startDate;
     private LocalDate endDate;
 
-    public GetHabitResponse toResponse() {
+    public GetHabitResponse toResponse(Set<String> tags) {
         return GetHabitResponse.builder()
                 .habitId(this.id)
                 .title(this.title)
@@ -50,6 +51,7 @@ public class Habit extends Timestamped {
                 .habitFrequency(this.habitFrequency)
                 .startDate(this.startDate)
                 .endDate(this.endDate)
+                .tags(tags)
                 .build();
     }
 
