@@ -7,7 +7,5 @@ import java.util.List;
 
 public interface TagService {
 
-    TagResponse saveTag(String name);
-
     List<TagResponse> getOrCreateAll(Collection<String> rawNames);
 }

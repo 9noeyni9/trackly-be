@@ -22,16 +22,6 @@ public class TagServiceImpl implements TagService {
     private final TagRepository tagRepository;
 
     @Override
-    public TagResponse saveTag(String name) {
-        if (name == null || name.trim().isEmpty()) throw new IllegalArgumentException("tag name is blank");
-
-        String raw = name.trim();
-
-        Tag tag = tagRepository.findByName(raw).orElseGet(() -> tagRepository.save(Tag.builder().name(raw).build()));
-        return TagResponse.from(tag);
-    }
-
-    @Override
     public List<TagResponse> getOrCreateAll(Collection<String> rawNames) {
         if(rawNames == null) return List.of();
 
