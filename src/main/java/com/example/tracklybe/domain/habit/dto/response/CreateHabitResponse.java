@@ -2,7 +2,6 @@ package com.example.tracklybe.domain.habit.dto.response;
 
 import com.example.tracklybe.domain.habit.entity.Habit;
 import com.example.tracklybe.domain.habit.entity.HabitFrequency;
-import com.example.tracklybe.domain.tag.entity.Tag;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -19,9 +18,9 @@ public class CreateHabitResponse {
     private HabitFrequency habitFrequency;
     private LocalDate startDate;
     private LocalDate endDate;
-    private List<Tag> tags;
+    private List<String> tags;
 
-    public CreateHabitResponse(Habit habit, List<Tag> tags) {
+    public CreateHabitResponse(Habit habit, List<String> tags) {
         this.id = habit.getId();
         this.title = habit.getTitle();
         this.description = habit.getDescription();

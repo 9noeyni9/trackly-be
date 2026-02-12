@@ -1,13 +1,13 @@
 package com.example.tracklybe.domain.tag.service;
 
-import com.example.tracklybe.domain.tag.entity.Tag;
+import com.example.tracklybe.domain.tag.dto.TagResponse;
 
 import java.util.Collection;
 import java.util.List;
 
 public interface TagService {
 
-    Tag saveTag(String name);
+    TagResponse saveTag(String name);
 
-    List<Tag> getOrCreateAll(Collection<String> rawNames);
+    List<TagResponse> getOrCreateAll(Collection<String> rawNames);
 }

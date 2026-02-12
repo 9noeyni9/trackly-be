@@ -8,6 +8,7 @@ import com.example.tracklybe.domain.habit.entity.Habit;
 import com.example.tracklybe.domain.habit.entity.HabitTag;
 import com.example.tracklybe.domain.habit.repository.HabitRepository;
 import com.example.tracklybe.domain.habit.repository.HabitTagRepository;
+import com.example.tracklybe.domain.tag.dto.TagResponse;
 import com.example.tracklybe.domain.tag.entity.Tag;
 import com.example.tracklybe.domain.tag.repository.TagRepository;
 import com.example.tracklybe.domain.tag.service.TagService;
@@ -43,8 +44,10 @@ public class HabitServiceImpl implements HabitService {
                 .build();
         Habit savedHabit = habitRepository.save(habit);
 
-        List<Tag> tags = tagService.getOrCreateAll(createHabitRequest.getTags());
-        if (!tags.isEmpty()) {
+        List<TagResponse> tagResponses = tagService.getOrCreateAll(createHabitRequest.getTags());
+        List<String> tagNames = tagResponses.stream().map(TagResponse::name).toList();
+        if (!tagNames.isEmpty()) {
+            List<Tag> tags = tagRepository.findByNameIn(tagNames);
             List<HabitTag> links = tags.stream()
                     .map(tag -> HabitTag.builder()
                             .habit(savedHabit)
@@ -53,7 +56,7 @@ public class HabitServiceImpl implements HabitService {
                     .toList();
             habitTagRepository.saveAll(links);
         }
-        return new CreateHabitResponse(savedHabit, tags);
+        return new CreateHabitResponse(savedHabit, tagNames);
     }
 
     @Override
@@ -134,7 +137,9 @@ public class HabitServiceImpl implements HabitService {
         }
 
         if (!toAdd.isEmpty()) {
-            List<Tag> tags = tagService.getOrCreateAll(toAdd);
+            List<TagResponse> tagResponses = tagService.getOrCreateAll(toAdd);
+            List<String> tagNames = tagResponses.stream().map(TagResponse::name).toList();
+            List<Tag> tags = tagRepository.findByNameIn(tagNames);
             List<HabitTag> links = tags.stream()
                     .map(tag -> HabitTag.builder().habit(habit).tag(tag).build())
                     .toList();

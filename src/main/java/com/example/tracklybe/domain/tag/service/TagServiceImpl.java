@@ -1,5 +1,6 @@
 package com.example.tracklybe.domain.tag.service;
 
+import com.example.tracklybe.domain.tag.dto.TagResponse;
 import com.example.tracklybe.domain.tag.entity.Tag;
 import com.example.tracklybe.domain.tag.repository.TagRepository;
 import jakarta.transaction.Transactional;
@@ -21,16 +22,17 @@ public class TagServiceImpl implements TagService {
     private final TagRepository tagRepository;
 
     @Override
-    public Tag saveTag(String name) {
+    public TagResponse saveTag(String name) {
         if (name == null || name.trim().isEmpty()) throw new IllegalArgumentException("tag name is blank");
 
         String raw = name.trim();
 
-        return tagRepository.findByName(raw).orElseGet(() -> tagRepository.save(Tag.builder().name(raw).build()));
+        Tag tag = tagRepository.findByName(raw).orElseGet(() -> tagRepository.save(Tag.builder().name(raw).build()));
+        return TagResponse.from(tag);
     }
 
     @Override
-    public List<Tag> getOrCreateAll(Collection<String> rawNames) {
+    public List<TagResponse> getOrCreateAll(Collection<String> rawNames) {
         if(rawNames == null) return List.of();
 
         List<String> names = rawNames.stream()
@@ -56,7 +58,9 @@ public class TagServiceImpl implements TagService {
             existing = new ArrayList<>(existing);
             existing.addAll(tagRepository.saveAll(toCreate));
         }
-        return existing;
+        return existing.stream()
+                .map(TagResponse::from)
+                .toList();
     }
 
 }
