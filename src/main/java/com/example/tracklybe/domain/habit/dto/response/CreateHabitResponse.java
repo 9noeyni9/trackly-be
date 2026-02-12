@@ -21,7 +21,7 @@ public class CreateHabitResponse {
     private List<String> tags;
 
     public CreateHabitResponse(Habit habit, List<String> tags) {
-        this.id = habit.getId();
+        this.id = habit.getHabitId();
         this.title = habit.getTitle();
         this.description = habit.getDescription();
         this.habitFrequency = habit.getHabitFrequency();

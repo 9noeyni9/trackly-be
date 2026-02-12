@@ -69,7 +69,7 @@ public class HabitServiceImpl implements HabitService {
     @Override
     public List<GetHabitResponse> getAllHabits() {
         List<Habit> habits = habitRepository.findAll();
-        List<Long> habitIds = habits.stream().map(Habit::getId).toList();
+        List<Long> habitIds = habits.stream().map(Habit::getHabitId).toList();
 
         Map<Long, Set<String>> tagsByHabitId =
                 habitTagRepository.findHabitIdAndTagNameByHabitIds(habitIds).stream()
@@ -79,7 +79,7 @@ public class HabitServiceImpl implements HabitService {
                         ));
 
         return habits.stream()
-                .map(h -> h.toResponse(tagsByHabitId.getOrDefault(h.getId(), Set.of())))
+                .map(h -> h.toResponse(tagsByHabitId.getOrDefault(h.getHabitId(), Set.of())))
                 .toList();
     }
 

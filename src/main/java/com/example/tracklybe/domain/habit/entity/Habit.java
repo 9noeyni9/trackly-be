@@ -20,7 +20,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
-@Table
+@Table(name = "habits")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -29,7 +29,7 @@ public class Habit extends Timestamped {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long habitId;
 
     @Column(nullable = false)
     private String title;
@@ -45,7 +45,7 @@ public class Habit extends Timestamped {
 
     public GetHabitResponse toResponse(Set<String> tags) {
         return GetHabitResponse.builder()
-                .habitId(this.id)
+                .habitId(this.habitId)
                 .title(this.title)
                 .description(this.description)
                 .habitFrequency(this.habitFrequency)
