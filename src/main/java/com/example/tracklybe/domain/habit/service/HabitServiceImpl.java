@@ -90,9 +90,7 @@ public class HabitServiceImpl implements HabitService {
         Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
         habit.update(updateHabitRequest);
         updateTags(habitId, updateHabitRequest.getTags());
-        Set<String> tags = updateHabitRequest.getTags() == null
-                ? Set.of()
-                : new HashSet<>(updateHabitRequest.getTags());
+        Set<String> tags = habitTagRepository.findTagNamesByHabitId(habitId);
         return habit.toResponse(tags);
     }
 
