@@ -102,17 +102,6 @@ public class HabitServiceImpl implements HabitService {
     }
 
     @Override
-    public void detachTag(Long habitId, String tagName) {
-        Habit habit = habitRepository.findById(habitId)
-                .orElseThrow(() -> new HabitNotFoundException(habitId));
-
-        Tag tag = tagRepository.findByName(tagName.trim())
-                .orElseThrow(() -> new IllegalArgumentException("tag not found: " + tagName));
-
-        habitTagRepository.deleteByHabitAndTag(habit, tag);
-    }
-
-    @Override
     public void updateTags(Long habitId, List<String> requestedTagNames) {
         if (requestedTagNames == null) return;
 
