@@ -22,22 +22,22 @@ public interface HabitTagRepository extends JpaRepository<HabitTag, Long> {
             select t.name
             from HabitTag ht
             join ht.tag t
-            where ht.habit.id = :habitId
+            where ht.habit.habitId = :habitId
             """)
     Set<String> findTagNamesByHabitId(Long habitId);
 
     @Query("""
-        select ht.habit.id, t.name
+        select ht.habit.habitId, t.name
         from HabitTag ht
         join ht.tag t
-        where ht.habit.id in :habitIds
+        where ht.habit.habitId in :habitIds
     """)
     List<Object[]> findHabitIdAndTagNameByHabitIds(@Param("habitIds") List<Long> habitIds);
 
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("""
                 delete from HabitTag ht
-                where ht.habit.id = :habitId
+                where ht.habit.habitId = :habitId
                   and ht.tag.name in :tagNames
             """)
     int deleteByHabitIdAndTagNames(@Param("habitId") Long habitId,

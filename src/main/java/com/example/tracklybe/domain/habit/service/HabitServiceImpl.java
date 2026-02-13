@@ -70,13 +70,15 @@ public class HabitServiceImpl implements HabitService {
     public List<GetHabitResponse> getAllHabits() {
         List<Habit> habits = habitRepository.findAll();
         List<Long> habitIds = habits.stream().map(Habit::getHabitId).toList();
+        if (habitIds.isEmpty()) {
+            return List.of();
+        }
 
-        Map<Long, Set<String>> tagsByHabitId =
-                habitTagRepository.findHabitIdAndTagNameByHabitIds(habitIds).stream()
-                        .collect(Collectors.groupingBy(
-                                row -> (Long) row[0],
-                                Collectors.mapping(row -> (String) row[1], Collectors.toSet())
-                        ));
+        Map<Long, Set<String>> tagsByHabitId = habitTagRepository.findHabitIdAndTagNameByHabitIds(habitIds).stream()
+                .collect(Collectors.groupingBy(
+                        row -> (Long) row[0],
+                        Collectors.mapping(row -> (String) row[1], Collectors.toSet())
+                ));
 
         return habits.stream()
                 .map(h -> h.toResponse(tagsByHabitId.getOrDefault(h.getHabitId(), Set.of())))
@@ -114,7 +116,7 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     public void updateTags(Long habitId, List<String> requestedTagNames) {
-        if(requestedTagNames == null) return;
+        if (requestedTagNames == null) return;
 
         Habit habit = habitRepository.findById(habitId)
                 .orElseThrow(() -> new HabitNotFoundException(habitId));
