@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
@@ -17,13 +18,15 @@ public class CreateHabitResponse {
     private HabitFrequency habitFrequency;
     private LocalDate startDate;
     private LocalDate endDate;
+    private List<String> tags;
 
-    public CreateHabitResponse(Habit habit) {
-        this.id = habit.getId();
+    public CreateHabitResponse(Habit habit, List<String> tags) {
+        this.id = habit.getHabitId();
         this.title = habit.getTitle();
         this.description = habit.getDescription();
         this.habitFrequency = habit.getHabitFrequency();
         this.startDate = habit.getStartDate();
         this.endDate = habit.getEndDate();
+        this.tags = tags;
     }
 }

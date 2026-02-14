@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Getter
 @Builder
@@ -16,4 +17,5 @@ public class GetHabitResponse {
     private HabitFrequency habitFrequency;
     private LocalDate startDate;
     private LocalDate endDate;
+    private Set<String> tags;
 }

@@ -53,7 +53,7 @@ public class HabitLog extends Timestamped {
 
     public HabitLogResponse toResponse() {
         return HabitLogResponse.builder()
-                .habitId(this.habit.getId())
+                .habitId(this.habit.getHabitId())
                 .title(this.habit.getTitle())
                 .completed(this.completed)
                 .note(this.note)

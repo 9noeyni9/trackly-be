@@ -46,7 +46,7 @@ public class HabitLogServiceImpl implements HabitLogService {
                 .orElseThrow(() -> new HabitNotFoundException(habitId));
 
         HabitLog habitLog = habitLogRepository.findByHabitAndDate(habit, date)
-                .orElseThrow(() -> new HabitLogNotFoundException(habit.getId(), date));
+                .orElseThrow(() -> new HabitLogNotFoundException(habit.getHabitId(), date));
 
         return GetHabitLogResponse.from(habitLog);
     }
@@ -64,7 +64,7 @@ public class HabitLogServiceImpl implements HabitLogService {
                 .orElseThrow(() -> new HabitNotFoundException(habitId));
 
         HabitLog habitLog = habitLogRepository.findByHabitAndDate(habit, date)
-                .orElseThrow(() -> new HabitLogNotFoundException(habit.getId(), date));
+                .orElseThrow(() -> new HabitLogNotFoundException(habit.getHabitId(), date));
 
         habitLogRepository.delete(habitLog);
     }

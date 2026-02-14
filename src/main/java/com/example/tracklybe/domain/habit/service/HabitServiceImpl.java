@@ -5,13 +5,21 @@ import com.example.tracklybe.domain.habit.dto.request.UpdateHabitRequest;
 import com.example.tracklybe.domain.habit.dto.response.CreateHabitResponse;
 import com.example.tracklybe.domain.habit.dto.response.GetHabitResponse;
 import com.example.tracklybe.domain.habit.entity.Habit;
+import com.example.tracklybe.domain.habit.entity.HabitTag;
 import com.example.tracklybe.domain.habit.repository.HabitRepository;
+import com.example.tracklybe.domain.habit.repository.HabitTagRepository;
+import com.example.tracklybe.domain.tag.entity.Tag;
+import com.example.tracklybe.domain.tag.service.TagService;
 import com.example.tracklybe.global.exception.HabitNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +27,8 @@ import java.util.List;
 public class HabitServiceImpl implements HabitService {
 
     private final HabitRepository habitRepository;
+    private final HabitTagRepository habitTagRepository;
+    private final TagService tagService;
 
     @Override
     public CreateHabitResponse createHabit(CreateHabitRequest createHabitRequest) {
@@ -30,19 +40,44 @@ public class HabitServiceImpl implements HabitService {
                 .endDate(createHabitRequest.getEndDate())
                 .build();
         Habit savedHabit = habitRepository.save(habit);
-        return new CreateHabitResponse(savedHabit);
+
+        List<Tag> tags = tagService.getOrCreateEntities(createHabitRequest.getTags());
+        if (!tags.isEmpty()) {
+            List<HabitTag> links = tags.stream()
+                    .map(tag -> HabitTag.builder()
+                            .habit(savedHabit)
+                            .tag(tag)
+                            .build())
+                    .toList();
+            habitTagRepository.saveAll(links);
+        }
+        List<String> tagNames = tags.stream().map(Tag::getName).toList();
+        return new CreateHabitResponse(savedHabit, tagNames);
     }
 
     @Override
     public GetHabitResponse getHabit(Long habitId) {
         Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
-        return habit.toResponse();
+        Set<String> tags = habitTagRepository.findTagNamesByHabitId(habitId);
+        return habit.toResponse(tags);
     }
 
     @Override
     public List<GetHabitResponse> getAllHabits() {
-        return habitRepository.findAll().stream()
-                .map(Habit::toResponse)
+        List<Habit> habits = habitRepository.findAll();
+        List<Long> habitIds = habits.stream().map(Habit::getHabitId).toList();
+        if (habitIds.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, Set<String>> tagsByHabitId = habitTagRepository.findHabitIdAndTagNameByHabitIds(habitIds).stream()
+                .collect(Collectors.groupingBy(
+                        row -> (Long) row[0],
+                        Collectors.mapping(row -> (String) row[1], Collectors.toSet())
+                ));
+
+        return habits.stream()
+                .map(h -> h.toResponse(tagsByHabitId.getOrDefault(h.getHabitId(), Set.of())))
                 .toList();
     }
 
@@ -50,12 +85,48 @@ public class HabitServiceImpl implements HabitService {
     public GetHabitResponse updateHabit(UpdateHabitRequest updateHabitRequest, Long habitId) {
         Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
         habit.update(updateHabitRequest);
-        return habit.toResponse();
+        updateTags(habitId, updateHabitRequest.getTags());
+        Set<String> tags = habitTagRepository.findTagNamesByHabitId(habitId);
+        return habit.toResponse(tags);
     }
 
     @Override
     public void deleteHabit(Long habitId) {
         Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
+        habitTagRepository.deleteByHabit(habit);
         habitRepository.delete(habit);
+    }
+
+    @Override
+    public void updateTags(Long habitId, List<String> requestedTagNames) {
+        if (requestedTagNames == null) return;
+
+        Habit habit = habitRepository.findById(habitId)
+                .orElseThrow(() -> new HabitNotFoundException(habitId));
+
+        Set<String> newTags = requestedTagNames.stream()
+                .map(s -> s == null ? "" : s.trim())
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.toSet());
+
+        Set<String> oldTags = habitTagRepository.findTagNamesByHabitId(habitId);
+
+        Set<String> toRemove = new HashSet<>(oldTags);
+        toRemove.removeAll(newTags);
+
+        Set<String> toAdd = new HashSet<>(newTags);
+        toAdd.removeAll(oldTags);
+
+        if (!toRemove.isEmpty()) {
+            habitTagRepository.deleteByHabitIdAndTagNames(habitId, toRemove);
+        }
+
+        if (!toAdd.isEmpty()) {
+            List<Tag> tags = tagService.getOrCreateEntities(toAdd);
+            List<HabitTag> links = tags.stream()
+                    .map(tag -> HabitTag.builder().habit(habit).tag(tag).build())
+                    .toList();
+            habitTagRepository.saveAll(links);
+        }
     }
 }
