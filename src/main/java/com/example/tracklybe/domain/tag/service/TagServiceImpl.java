@@ -22,18 +22,9 @@ public class TagServiceImpl implements TagService {
     private final TagRepository tagRepository;
 
     @Override
-    public List<TagResponse> getOrCreateAll(Collection<String> rawNames) {
-        if(rawNames == null) return List.of();
-
-        List<String> names = rawNames.stream()
-                .filter(Objects::nonNull)
-                .map(String::trim)
-                .filter(s -> !s.isBlank())
-                .distinct()
-                .toList();
-
+    public List<Tag> getOrCreateEntities(Collection<String> rawNames) {
+        List<String> names = normalizeNames(rawNames);
         if(names.isEmpty()) return List.of();
-
         List<Tag> existing = tagRepository.findByNameIn(names);
         Set<String> exists = existing.stream().map(Tag::getName).collect(Collectors.toSet());
 
@@ -48,8 +39,24 @@ public class TagServiceImpl implements TagService {
             existing = new ArrayList<>(existing);
             existing.addAll(tagRepository.saveAll(toCreate));
         }
-        return existing.stream()
+        return existing;
+    }
+
+    @Override
+    public List<TagResponse> getOrCreateAll(Collection<String> rawNames) {
+        return getOrCreateEntities(rawNames).stream()
                 .map(TagResponse::from)
+                .toList();
+    }
+
+    private List<String> normalizeNames(Collection<String> rawNames) {
+        if(rawNames == null) return List.of();
+
+        return rawNames.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .distinct()
                 .toList();
     }
 
