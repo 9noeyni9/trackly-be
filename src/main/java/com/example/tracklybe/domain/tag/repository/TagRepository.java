@@ -9,6 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface TagRepository extends JpaRepository<Tag, Long> {
-    Optional<Tag> findByName(String nameNormalized);
+    Optional<Tag> findByNormalizedName(String normalizedName);
+    List<Tag> findByNormalizedNameIn(List<String> normalizedNames);
     List<Tag> findByNameIn(List<String> names);
 }
