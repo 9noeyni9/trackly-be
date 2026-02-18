@@ -104,9 +104,9 @@ public class HabitServiceImpl implements HabitService {
         Habit habit = habitRepository.findById(habitId)
                 .orElseThrow(() -> new HabitNotFoundException(habitId));
 
-        Set<String> newTags = requestedTagNames.stream()
-                .map(s -> s == null ? "" : s.trim())
-                .filter(s -> !s.isBlank())
+        List<Tag> targetTags = tagService.getOrCreateEntities(requestedTagNames);
+        Set<String> newTags = targetTags.stream()
+                .map(Tag::getName)
                 .collect(Collectors.toSet());
 
         Set<String> oldTags = habitTagRepository.findTagNamesByHabitId(habitId);
@@ -122,8 +122,8 @@ public class HabitServiceImpl implements HabitService {
         }
 
         if (!toAdd.isEmpty()) {
-            List<Tag> tags = tagService.getOrCreateEntities(toAdd);
-            List<HabitTag> links = tags.stream()
+            List<HabitTag> links = targetTags.stream()
+                    .filter(tag -> toAdd.contains(tag.getName()))
                     .map(tag -> HabitTag.builder().habit(habit).tag(tag).build())
                     .toList();
             habitTagRepository.saveAll(links);

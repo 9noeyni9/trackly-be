@@ -28,4 +28,11 @@ public class Tag extends Timestamped {
 
     @Column(nullable = false, length = 30, unique = true)
     private String name;
+
+    @Column(length = 64, unique = true)
+    private String normalizedName;
+
+    public void updateNormalizedName(String normalizedName) {
+        this.normalizedName = normalizedName;
+    }
 }
