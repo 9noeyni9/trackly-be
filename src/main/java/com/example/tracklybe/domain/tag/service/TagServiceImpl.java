@@ -7,20 +7,16 @@ import com.example.tracklybe.global.exception.InvalidRequestException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.dao.DataIntegrityViolationException;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.Comparator;
 
 @Service
 @Transactional
@@ -38,9 +34,8 @@ public class TagServiceImpl implements TagService {
         if (normalizedToDisplay.isEmpty()) return List.of();
 
         List<String> normalizedNames = new ArrayList<>(normalizedToDisplay.keySet());
-        ExistingLookup lookup = findExistingByNormalized(normalizedNames);
-        backfillLegacyNormalizedNames(normalizedToDisplay, lookup);
-        List<Tag> allTags = createMissingTags(normalizedToDisplay, normalizedNames, lookup);
+        ExistingLookup lookup = findExistingByNormalizedNames(normalizedNames);
+        List<Tag> allTags = createMissingTags(normalizedToDisplay, lookup);
         return orderByRequestedNormalizedNames(normalizedNames, allTags);
     }
 
@@ -56,8 +51,9 @@ public class TagServiceImpl implements TagService {
         if (rawNames == null) return normalizedToDisplay;
 
         for (String rawName : rawNames) {
+            if(rawName == null) continue;
             String displayName = normalizeDisplayName(rawName);
-            if (rawName == null || displayName.isBlank()) continue;
+            if (displayName.isBlank()) continue;
             validateDisplayNameLength(displayName);
 
             String normalizedName = normalizeKey(displayName);
@@ -67,96 +63,40 @@ public class TagServiceImpl implements TagService {
         return normalizedToDisplay;
     }
 
-    private ExistingLookup findExistingByNormalized(List<String> normalizedNames) {
-        List<Tag> existing = tagRepository.findByNormalizedNameIn(normalizedNames);
-        Set<String> exists = existing.stream()
+    private ExistingLookup findExistingByNormalizedNames(List<String> normalizedNames) {
+        List<Tag> existing = new ArrayList<>(tagRepository.findByNormalizedNameIn(normalizedNames));
+        List<String> existingNormalizedNames = existing.stream()
                 .map(Tag::getNormalizedName)
-                .collect(Collectors.toSet());
-        return new ExistingLookup(existing, exists);
-    }
-
-    private void backfillLegacyNormalizedNames(
-            LinkedHashMap<String, String> normalizedToDisplay,
-            ExistingLookup lookup
-    ) {
-        List<Tag> legacyTags = findLegacyTagsByDisplayName(normalizedToDisplay.values());
-        List<Tag> backfillTargets = selectBackfillTargets(legacyTags, lookup.existingNormalizedNames());
-
-        for (Tag tag : legacyTags) {
-            String normalizedName = normalizeKey(normalizeDisplayName(tag.getName()));
-            if (!lookup.existingNormalizedNames().contains(normalizedName)) {
-                lookup.existingTags().add(tag);
-                lookup.existingNormalizedNames().add(normalizedName);
-            }
-        }
-
-        saveBackfillTargets(backfillTargets);
-    }
-
-    private List<Tag> findLegacyTagsByDisplayName(Collection<String> displayNames) {
-        return tagRepository.findByNameIn(new ArrayList<>(displayNames)).stream()
-                .sorted(Comparator.comparing(Tag::getTagId))
                 .toList();
-    }
-
-    private List<Tag> selectBackfillTargets(List<Tag> legacyTags, Set<String> occupiedNormalizedNames) {
-        List<Tag> backfillTargets = new ArrayList<>();
-        Set<String> occupied = new HashSet<>(occupiedNormalizedNames);
-        Map<String, Tag> selectedByNormalizedName = new LinkedHashMap<>();
-
-        for (Tag tag : legacyTags) {
-            String normalizedName = normalizeKey(normalizeDisplayName(tag.getName()));
-            if (tag.getNormalizedName() != null && !tag.getNormalizedName().isBlank() || occupied.contains(normalizedName) || selectedByNormalizedName.containsKey(normalizedName)) {
-                continue;
-            }
-            tag.updateNormalizedName(normalizedName);
-            selectedByNormalizedName.put(normalizedName, tag);
-            occupied.add(normalizedName);
-        }
-
-        backfillTargets.addAll(selectedByNormalizedName.values());
-        return backfillTargets;
-    }
-
-    private void saveBackfillTargets(List<Tag> backfillTargets) {
-        if (backfillTargets.isEmpty()) return;
-        try {
-            tagRepository.saveAll(backfillTargets);
-        } catch (DataIntegrityViolationException ignored) {
-            // Legacy duplicate data can still race or conflict; request should continue with canonical lookup.
-        }
+        return new ExistingLookup(existing, existingNormalizedNames);
     }
 
     private List<Tag> createMissingTags(
             LinkedHashMap<String, String> normalizedToDisplay,
-            List<String> normalizedNames,
             ExistingLookup lookup
     ) {
-        List<Tag> toCreate = normalizedNames.stream()
-                .filter(n -> !lookup.existingNormalizedNames().contains(n))
+        List<Tag> toCreate = normalizedToDisplay.entrySet().stream()
+                .filter(entry -> !lookup.existingNormalizedNames().contains(entry.getKey()))
                 .map(normalizedName -> Tag.builder()
-                        .name(normalizedToDisplay.get(normalizedName))
-                        .normalizedName(normalizedName)
+                        .name(normalizedName.getValue())
+                        .normalizedName(normalizedName.getKey())
                         .build())
                 .toList();
 
         List<Tag> all = new ArrayList<>(lookup.existingTags());
-        if (toCreate.isEmpty()) {
-            return all;
-        }
-
-        try {
+        if (!toCreate.isEmpty()) {
             all.addAll(tagRepository.saveAll(toCreate));
-            return all;
-        } catch (DataIntegrityViolationException ignored) {
-            // Concurrent creates may win for the same normalized key. Re-read canonical rows.
-            return mergeByNormalizedName(all, tagRepository.findByNormalizedNameIn(normalizedNames));
         }
+        return all;
     }
 
     private List<Tag> orderByRequestedNormalizedNames(List<String> normalizedNames, List<Tag> allTags) {
         Map<String, Tag> byNormalizedName = allTags.stream()
-                .collect(Collectors.toMap(Tag::getNormalizedName, tag -> tag));
+                .collect(Collectors.toMap(
+                        Tag::getNormalizedName,
+                        tag -> tag,
+                        (existing, ignored) -> existing
+                ));
         return normalizedNames.stream()
                 .map(byNormalizedName::get)
                 .filter(Objects::nonNull)
@@ -204,21 +144,5 @@ public class TagServiceImpl implements TagService {
         }
     }
 
-    private List<Tag> mergeByNormalizedName(List<Tag> current, List<Tag> additional) {
-        Map<String, Tag> merged = new LinkedHashMap<>();
-        for (Tag tag : current) {
-            if (tag.getNormalizedName() != null && !tag.getNormalizedName().isBlank()) {
-                merged.putIfAbsent(tag.getNormalizedName(), tag);
-            }
-        }
-        for (Tag tag : additional) {
-            if (tag.getNormalizedName() != null && !tag.getNormalizedName().isBlank()) {
-                merged.putIfAbsent(tag.getNormalizedName(), tag);
-            }
-        }
-        return new ArrayList<>(merged.values());
-    }
-
-    private record ExistingLookup(List<Tag> existingTags, Set<String> existingNormalizedNames) {
-    }
+    private record ExistingLookup(List<Tag> existingTags, List<String> existingNormalizedNames) {}
 }
