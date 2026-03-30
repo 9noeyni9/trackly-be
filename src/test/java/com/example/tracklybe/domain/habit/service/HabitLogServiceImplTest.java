@@ -42,13 +42,12 @@ class HabitLogServiceImplTest {
 
     @Test
     void toggleToday_updatesExistingLogAndReturnsResponse() {
-        LocalDate today = LocalDate.now();
         Habit habit = habit(1L, "Run");
-        HabitLog existingLog = habitLog(10L, habit, today, false, null, null);
+        HabitLog existingLog = habitLog(10L, habit, LocalDate.of(2026, 3, 30), false, null, null);
         HabitLogRequest request = new HabitLogRequest(true, "done");
 
         when(habitRepository.findById(1L)).thenReturn(Optional.of(habit));
-        when(habitLogRepository.findByHabitAndDate(habit, today)).thenReturn(Optional.of(existingLog));
+        when(habitLogRepository.findByHabitAndDate(any(Habit.class), any(LocalDate.class))).thenReturn(Optional.of(existingLog));
         when(habitLogRepository.save(existingLog)).thenReturn(existingLog);
 
         HabitLogResponse response = habitLogService.toggleToday(1L, request);
@@ -64,12 +63,11 @@ class HabitLogServiceImplTest {
 
     @Test
     void toggleToday_createsNewLogWhenMissing() {
-        LocalDate today = LocalDate.now();
         Habit habit = habit(2L, "Read");
         HabitLogRequest request = new HabitLogRequest(false, "later");
 
         when(habitRepository.findById(2L)).thenReturn(Optional.of(habit));
-        when(habitLogRepository.findByHabitAndDate(habit, today)).thenReturn(Optional.empty());
+        when(habitLogRepository.findByHabitAndDate(any(Habit.class), any(LocalDate.class))).thenReturn(Optional.empty());
         when(habitLogRepository.save(any(HabitLog.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         HabitLogResponse response = habitLogService.toggleToday(2L, request);
