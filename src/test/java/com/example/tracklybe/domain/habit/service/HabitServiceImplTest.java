@@ -15,6 +15,7 @@ import com.example.tracklybe.global.exception.HabitNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -190,8 +191,9 @@ class HabitServiceImplTest {
 
         habitService.deleteHabit(7L);
 
-        verify(habitTagRepository).deleteByHabit(existing);
-        verify(habitRepository).delete(existing);
+        InOrder inOrder = org.mockito.Mockito.inOrder(habitTagRepository, habitRepository);
+        inOrder.verify(habitTagRepository).deleteByHabit(existing);
+        inOrder.verify(habitRepository).delete(existing);
     }
 
     @Test
