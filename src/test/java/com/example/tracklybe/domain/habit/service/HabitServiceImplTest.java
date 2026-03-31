@@ -12,6 +12,7 @@ import com.example.tracklybe.domain.habit.repository.HabitTagRepository;
 import com.example.tracklybe.domain.tag.entity.Tag;
 import com.example.tracklybe.domain.tag.service.TagService;
 import com.example.tracklybe.global.exception.HabitNotFoundException;
+import com.example.tracklybe.global.exception.InvalidRequestException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -106,6 +107,24 @@ class HabitServiceImplTest {
     }
 
     @Test
+    void createHabit_throwsInvalidRequestException_whenStartDateAfterEndDate() {
+        CreateHabitRequest request = mockCreateRequest(
+                "Invalid",
+                null,
+                HabitFrequency.DAILY,
+                LocalDate.of(2026, 4, 2),
+                LocalDate.of(2026, 4, 1),
+                List.of("Tag")
+        );
+
+        assertThatThrownBy(() -> habitService.createHabit(request))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessageContaining("시작일은 종료일보다 늦을 수 없습니다.");
+
+        verify(habitRepository, never()).save(any(Habit.class));
+    }
+
+    @Test
     void getHabit_returnsResponseWithTags() {
         Habit existing = habit(3L, "Stretch", "10 min", HabitFrequency.DAILY, null, null);
         when(habitRepository.findById(3L)).thenReturn(Optional.of(existing));
@@ -180,6 +199,27 @@ class HabitServiceImplTest {
         assertThat(result.getDescription()).isEqualTo("new desc");
         assertThat(result.getHabitFrequency()).isEqualTo(HabitFrequency.MONTHLY);
         assertThat(result.getTags()).containsExactly("UpdatedTag");
+
+        verify(tagService, never()).getOrCreateEntities(anyCollection());
+    }
+
+    @Test
+    void updateHabit_throwsInvalidRequestException_whenStartDateAfterEndDate() {
+        Habit existing = habit(6L, "Old", "desc", HabitFrequency.WEEKLY, null, null);
+        UpdateHabitRequest request = mockUpdateRequest(
+                "New",
+                "new desc",
+                HabitFrequency.MONTHLY,
+                LocalDate.of(2026, 5, 2),
+                LocalDate.of(2026, 5, 1),
+                List.of("Focus")
+        );
+
+        when(habitRepository.findById(6L)).thenReturn(Optional.of(existing));
+
+        assertThatThrownBy(() -> habitService.updateHabit(request, 6L))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessageContaining("시작일은 종료일보다 늦을 수 없습니다.");
 
         verify(tagService, never()).getOrCreateEntities(anyCollection());
     }

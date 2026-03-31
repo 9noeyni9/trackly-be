@@ -11,10 +11,12 @@ import com.example.tracklybe.domain.habit.repository.HabitTagRepository;
 import com.example.tracklybe.domain.tag.entity.Tag;
 import com.example.tracklybe.domain.tag.service.TagService;
 import com.example.tracklybe.global.exception.HabitNotFoundException;
+import com.example.tracklybe.global.exception.InvalidRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,8 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     public CreateHabitResponse createHabit(CreateHabitRequest createHabitRequest) {
+        validateDateRange(createHabitRequest.getStartDate(), createHabitRequest.getEndDate());
+
         Habit habit = Habit.builder()
                 .title(createHabitRequest.getTitle())
                 .description(createHabitRequest.getDescription())
@@ -84,6 +88,7 @@ public class HabitServiceImpl implements HabitService {
     @Override
     public GetHabitResponse updateHabit(UpdateHabitRequest updateHabitRequest, Long habitId) {
         Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
+        validateDateRange(updateHabitRequest.getStartDate(), updateHabitRequest.getEndDate());
         habit.update(updateHabitRequest);
         updateTags(habitId, updateHabitRequest.getTags());
         Set<String> tags = habitTagRepository.findTagNamesByHabitId(habitId);
@@ -127,6 +132,12 @@ public class HabitServiceImpl implements HabitService {
                     .map(tag -> HabitTag.builder().habit(habit).tag(tag).build())
                     .toList();
             habitTagRepository.saveAll(links);
+        }
+    }
+
+    private void validateDateRange(LocalDate startDate, LocalDate endDate) {
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw new InvalidRequestException("시작일은 종료일보다 늦을 수 없습니다.");
         }
     }
 }
