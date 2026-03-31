@@ -4,6 +4,7 @@ import com.example.tracklybe.domain.habit.dto.request.HabitLogRequest;
 import com.example.tracklybe.domain.habit.dto.response.GetHabitLogResponse;
 import com.example.tracklybe.domain.habit.dto.response.HabitLogResponse;
 import com.example.tracklybe.domain.habit.service.HabitLogService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class HabitLogController {
     @PatchMapping("/{habitId}/logs/today")
     public ResponseEntity<HabitLogResponse> toggleToday(
             @PathVariable Long habitId,
-            @RequestBody HabitLogRequest habitLogRequest
+            @Valid @RequestBody HabitLogRequest habitLogRequest
     ) {
         HabitLogResponse habitLogResponse = habitLogService.toggleToday(habitId, habitLogRequest);
 
