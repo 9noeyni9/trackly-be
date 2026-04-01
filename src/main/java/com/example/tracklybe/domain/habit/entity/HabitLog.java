@@ -3,6 +3,7 @@ package com.example.tracklybe.domain.habit.entity;
 import com.example.tracklybe.domain.common.entity.Timestamped;
 import com.example.tracklybe.domain.habit.dto.request.HabitLogRequest;
 import com.example.tracklybe.domain.habit.dto.response.HabitLogResponse;
+import com.example.tracklybe.domain.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -42,6 +43,10 @@ public class HabitLog extends Timestamped {
     @JoinColumn(name = "habit_id", nullable = false)
     private Habit habit;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User owner;
+
     private LocalDate date;
 
     @Column(nullable = false)
@@ -67,6 +72,7 @@ public class HabitLog extends Timestamped {
 
         return HabitLog.builder()
                 .habit(habit)
+                .owner(habit.getOwner())
                 .date(today)
                 .completed(false)
                 .completedAt(null)
