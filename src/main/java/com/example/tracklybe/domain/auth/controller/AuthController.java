@@ -2,6 +2,7 @@ package com.example.tracklybe.domain.auth.controller;
 
 import com.example.tracklybe.domain.auth.dto.LoginRequest;
 import com.example.tracklybe.domain.auth.dto.LoginResponse;
+import com.example.tracklybe.domain.auth.dto.RefreshTokenRequest;
 import com.example.tracklybe.domain.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,5 +22,10 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
         return ResponseEntity.ok(authService.login(loginRequest));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<LoginResponse> refresh(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+        return ResponseEntity.ok(authService.refresh(refreshTokenRequest));
     }
 }

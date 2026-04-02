@@ -33,7 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith(BEARER_PREFIX)
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
             String token = header.substring(BEARER_PREFIX.length());
-            if (jwtTokenProvider.validateToken(token)) {
+            if (jwtTokenProvider.validateAccessToken(token)) {
                 Long userId = jwtTokenProvider.getUserId(token);
                 String email = jwtTokenProvider.getEmail(token);
                 AuthenticatedUser principal = new AuthenticatedUser(userId, email);
