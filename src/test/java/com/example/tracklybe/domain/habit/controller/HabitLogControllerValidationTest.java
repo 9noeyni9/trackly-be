@@ -3,6 +3,7 @@ package com.example.tracklybe.domain.habit.controller;
 import com.example.tracklybe.domain.habit.service.HabitLogService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
@@ -17,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(HabitLogController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class HabitLogControllerValidationTest {
 
     @Autowired
