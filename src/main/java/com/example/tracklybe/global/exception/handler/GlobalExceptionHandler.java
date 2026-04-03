@@ -5,6 +5,7 @@ import com.example.tracklybe.domain.common.dto.ApiResponse;
 import com.example.tracklybe.global.exception.HabitLogNotFoundException;
 import com.example.tracklybe.global.exception.HabitNotFoundException;
 import com.example.tracklybe.global.exception.InvalidRequestException;
+import com.example.tracklybe.global.exception.ForbiddenException;
 import com.example.tracklybe.global.exception.UnauthorizedException;
 import com.example.tracklybe.global.exception.enumeration.ErrorCode;
 import jakarta.validation.ConstraintViolationException;
@@ -37,6 +38,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ApiResponse<Void>> handleUnauthorizedException(UnauthorizedException e) {
+        return buildErrorResponse(e.getErrorCode(), e.getMessage());
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ApiResponse<Void>> handleForbiddenException(ForbiddenException e) {
         return buildErrorResponse(e.getErrorCode(), e.getMessage());
     }
 

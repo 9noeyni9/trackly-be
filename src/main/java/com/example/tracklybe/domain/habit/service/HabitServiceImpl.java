@@ -10,8 +10,12 @@ import com.example.tracklybe.domain.habit.repository.HabitRepository;
 import com.example.tracklybe.domain.habit.repository.HabitTagRepository;
 import com.example.tracklybe.domain.tag.entity.Tag;
 import com.example.tracklybe.domain.tag.service.TagService;
+import com.example.tracklybe.domain.user.entity.User;
+import com.example.tracklybe.domain.user.repository.UserRepository;
+import com.example.tracklybe.global.exception.ForbiddenException;
 import com.example.tracklybe.global.exception.HabitNotFoundException;
 import com.example.tracklybe.global.exception.InvalidRequestException;
+import com.example.tracklybe.global.security.CurrentUserProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,12 +35,18 @@ public class HabitServiceImpl implements HabitService {
     private final HabitRepository habitRepository;
     private final HabitTagRepository habitTagRepository;
     private final TagService tagService;
+    private final UserRepository userRepository;
+    private final CurrentUserProvider currentUserProvider;
 
     @Override
     public CreateHabitResponse createHabit(CreateHabitRequest createHabitRequest) {
         validateDateRange(createHabitRequest.getStartDate(), createHabitRequest.getEndDate());
+        Long currentUserId = currentUserProvider.getCurrentUserId();
+        User owner = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new InvalidRequestException("유효하지 않은 사용자입니다."));
 
         Habit habit = Habit.builder()
+                .owner(owner)
                 .title(createHabitRequest.getTitle())
                 .description(createHabitRequest.getDescription())
                 .habitFrequency(createHabitRequest.getHabitFrequency())
@@ -61,14 +71,16 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     public GetHabitResponse getHabit(Long habitId) {
-        Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
+        Long currentUserId = currentUserProvider.getCurrentUserId();
+        Habit habit = findOwnedHabitOrThrow(habitId, currentUserId);
         Set<String> tags = habitTagRepository.findTagNamesByHabitId(habitId);
         return habit.toResponse(tags);
     }
 
     @Override
     public List<GetHabitResponse> getAllHabits() {
-        List<Habit> habits = habitRepository.findAll();
+        Long currentUserId = currentUserProvider.getCurrentUserId();
+        List<Habit> habits = habitRepository.findAllByOwnerUserId(currentUserId);
         List<Long> habitIds = habits.stream().map(Habit::getHabitId).toList();
         if (habitIds.isEmpty()) {
             return List.of();
@@ -87,7 +99,8 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     public GetHabitResponse updateHabit(UpdateHabitRequest updateHabitRequest, Long habitId) {
-        Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
+        Long currentUserId = currentUserProvider.getCurrentUserId();
+        Habit habit = findOwnedHabitOrThrow(habitId, currentUserId);
         validateDateRange(updateHabitRequest.getStartDate(), updateHabitRequest.getEndDate());
         habit.update(updateHabitRequest);
         updateTags(habitId, updateHabitRequest.getTags());
@@ -97,7 +110,8 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     public void deleteHabit(Long habitId) {
-        Habit habit = habitRepository.findById(habitId).orElseThrow(() -> new HabitNotFoundException(habitId));
+        Long currentUserId = currentUserProvider.getCurrentUserId();
+        Habit habit = findOwnedHabitOrThrow(habitId, currentUserId);
         habitTagRepository.deleteByHabit(habit);
         habitRepository.delete(habit);
     }
@@ -105,9 +119,9 @@ public class HabitServiceImpl implements HabitService {
     @Override
     public void updateTags(Long habitId, List<String> requestedTagNames) {
         if (requestedTagNames == null) return;
+        Long currentUserId = currentUserProvider.getCurrentUserId();
 
-        Habit habit = habitRepository.findById(habitId)
-                .orElseThrow(() -> new HabitNotFoundException(habitId));
+        Habit habit = findOwnedHabitOrThrow(habitId, currentUserId);
 
         List<Tag> targetTags = tagService.getOrCreateEntities(requestedTagNames);
         Set<String> newTags = targetTags.stream()
@@ -139,5 +153,15 @@ public class HabitServiceImpl implements HabitService {
         if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
             throw new InvalidRequestException("시작일은 종료일보다 늦을 수 없습니다.");
         }
+    }
+
+    private Habit findOwnedHabitOrThrow(Long habitId, Long currentUserId) {
+        return habitRepository.findByHabitIdAndOwnerUserId(habitId, currentUserId)
+                .orElseGet(() -> {
+                    if (habitRepository.existsById(habitId)) {
+                        throw new ForbiddenException("해당 습관에 접근 권한이 없습니다.");
+                    }
+                    throw new HabitNotFoundException(habitId);
+                });
     }
 }
