@@ -11,8 +11,11 @@ import com.example.tracklybe.domain.habit.repository.HabitRepository;
 import com.example.tracklybe.domain.habit.repository.HabitTagRepository;
 import com.example.tracklybe.domain.tag.entity.Tag;
 import com.example.tracklybe.domain.tag.service.TagService;
+import com.example.tracklybe.domain.user.entity.User;
+import com.example.tracklybe.domain.user.repository.UserRepository;
 import com.example.tracklybe.global.exception.HabitNotFoundException;
 import com.example.tracklybe.global.exception.InvalidRequestException;
+import com.example.tracklybe.global.security.CurrentUserProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -48,6 +51,12 @@ class HabitServiceImplTest {
     @Mock
     private TagService tagService;
 
+    @Mock
+    private UserRepository userRepository;
+
+    @Mock
+    private CurrentUserProvider currentUserProvider;
+
     @InjectMocks
     private HabitServiceImpl habitService;
 
@@ -66,7 +75,10 @@ class HabitServiceImplTest {
                 LocalDate.of(2026, 3, 1), LocalDate.of(2026, 12, 31));
         Tag health = tag(10L, "Health", "health");
         Tag routine = tag(11L, "Routine", "routine");
+        User owner = user(100L, "owner@test.com");
 
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(userRepository.findById(100L)).thenReturn(Optional.of(owner));
         when(habitRepository.save(any(Habit.class))).thenReturn(savedHabit);
         when(tagService.getOrCreateEntities(List.of("Health", "Routine"))).thenReturn(List.of(health, routine));
 
@@ -96,7 +108,10 @@ class HabitServiceImplTest {
         );
 
         Habit savedHabit = habit(2L, "Read", null, HabitFrequency.DAILY, null, null);
+        User owner = user(100L, "owner@test.com");
 
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(userRepository.findById(100L)).thenReturn(Optional.of(owner));
         when(habitRepository.save(any(Habit.class))).thenReturn(savedHabit);
         when(tagService.getOrCreateEntities(List.of("Read"))).thenReturn(List.of());
 
@@ -127,7 +142,8 @@ class HabitServiceImplTest {
     @Test
     void getHabit_returnsResponseWithTags() {
         Habit existing = habit(3L, "Stretch", "10 min", HabitFrequency.DAILY, null, null);
-        when(habitRepository.findById(3L)).thenReturn(Optional.of(existing));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(3L, 100L)).thenReturn(Optional.of(existing));
         when(habitTagRepository.findTagNamesByHabitId(3L)).thenReturn(Set.of("Health"));
 
         GetHabitResponse response = habitService.getHabit(3L);
@@ -139,7 +155,8 @@ class HabitServiceImplTest {
 
     @Test
     void getHabit_throwsHabitNotFoundException_whenHabitMissing() {
-        when(habitRepository.findById(99L)).thenReturn(Optional.empty());
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(99L, 100L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> habitService.getHabit(99L))
                 .isInstanceOf(HabitNotFoundException.class)
@@ -148,7 +165,8 @@ class HabitServiceImplTest {
 
     @Test
     void getAllHabits_returnsEmptyList_whenNoHabits() {
-        when(habitRepository.findAll()).thenReturn(List.of());
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findAllByOwnerUserId(100L)).thenReturn(List.of());
 
         List<GetHabitResponse> result = habitService.getAllHabits();
 
@@ -161,7 +179,8 @@ class HabitServiceImplTest {
         Habit first = habit(1L, "Run", null, HabitFrequency.DAILY, null, null);
         Habit second = habit(2L, "Read", null, HabitFrequency.DAILY, null, null);
 
-        when(habitRepository.findAll()).thenReturn(List.of(first, second));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findAllByOwnerUserId(100L)).thenReturn(List.of(first, second));
         when(habitTagRepository.findHabitIdAndTagNameByHabitIds(List.of(1L, 2L)))
                 .thenReturn(List.of(
                         new Object[]{1L, "Health"},
@@ -190,7 +209,8 @@ class HabitServiceImplTest {
                 null
         );
 
-        when(habitRepository.findById(5L)).thenReturn(Optional.of(existing));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(5L, 100L)).thenReturn(Optional.of(existing));
         when(habitTagRepository.findTagNamesByHabitId(5L)).thenReturn(Set.of("UpdatedTag"));
 
         GetHabitResponse result = habitService.updateHabit(request, 5L);
@@ -215,7 +235,8 @@ class HabitServiceImplTest {
                 List.of("Focus")
         );
 
-        when(habitRepository.findById(6L)).thenReturn(Optional.of(existing));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(6L, 100L)).thenReturn(Optional.of(existing));
 
         assertThatThrownBy(() -> habitService.updateHabit(request, 6L))
                 .isInstanceOf(InvalidRequestException.class)
@@ -227,7 +248,8 @@ class HabitServiceImplTest {
     @Test
     void deleteHabit_deletesTagLinksThenHabit() {
         Habit existing = habit(7L, "Meditate", null, HabitFrequency.DAILY, null, null);
-        when(habitRepository.findById(7L)).thenReturn(Optional.of(existing));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(7L, 100L)).thenReturn(Optional.of(existing));
 
         habitService.deleteHabit(7L);
 
@@ -240,7 +262,8 @@ class HabitServiceImplTest {
     void updateTags_returnsImmediately_whenRequestedTagNamesIsNull() {
         habitService.updateTags(8L, null);
 
-        verify(habitRepository, never()).findById(anyLong());
+        verify(currentUserProvider, never()).getCurrentUserId();
+        verify(habitRepository, never()).findByHabitIdAndOwnerUserId(anyLong(), anyLong());
         verify(tagService, never()).getOrCreateEntities(anyCollection());
         verify(habitTagRepository, never()).findTagNamesByHabitId(anyLong());
     }
@@ -251,7 +274,8 @@ class HabitServiceImplTest {
         Tag health = tag(20L, "Health", "health");
         Tag focus = tag(21L, "Focus", "focus");
 
-        when(habitRepository.findById(8L)).thenReturn(Optional.of(existing));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(8L, 100L)).thenReturn(Optional.of(existing));
         when(tagService.getOrCreateEntities(List.of("Health", "Focus"))).thenReturn(List.of(health, focus));
         when(habitTagRepository.findTagNamesByHabitId(8L)).thenReturn(Set.of("Health", "OldTag"));
 
@@ -320,6 +344,15 @@ class HabitServiceImplTest {
                 .tagId(id)
                 .name(name)
                 .normalizedName(normalizedName)
+                .build();
+    }
+
+    private User user(Long userId, String email) {
+        return User.builder()
+                .userId(userId)
+                .email(email)
+                .password("encoded")
+                .nickname("owner")
                 .build();
     }
 }

@@ -10,6 +10,7 @@ import com.example.tracklybe.domain.habit.repository.HabitLogRepository;
 import com.example.tracklybe.domain.habit.repository.HabitRepository;
 import com.example.tracklybe.global.exception.HabitLogNotFoundException;
 import com.example.tracklybe.global.exception.HabitNotFoundException;
+import com.example.tracklybe.global.security.CurrentUserProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -37,6 +38,9 @@ class HabitLogServiceImplTest {
     @Mock
     private HabitLogRepository habitLogRepository;
 
+    @Mock
+    private CurrentUserProvider currentUserProvider;
+
     @InjectMocks
     private HabitLogServiceImpl habitLogService;
 
@@ -46,7 +50,8 @@ class HabitLogServiceImplTest {
         HabitLog existingLog = habitLog(10L, habit, LocalDate.of(2026, 3, 30), false, null, null);
         HabitLogRequest request = new HabitLogRequest(true, "done");
 
-        when(habitRepository.findById(1L)).thenReturn(Optional.of(habit));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(1L, 100L)).thenReturn(Optional.of(habit));
         when(habitLogRepository.findByHabitAndDate(any(Habit.class), any(LocalDate.class))).thenReturn(Optional.of(existingLog));
         when(habitLogRepository.save(existingLog)).thenReturn(existingLog);
 
@@ -66,7 +71,8 @@ class HabitLogServiceImplTest {
         Habit habit = habit(2L, "Read");
         HabitLogRequest request = new HabitLogRequest(false, "later");
 
-        when(habitRepository.findById(2L)).thenReturn(Optional.of(habit));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(2L, 100L)).thenReturn(Optional.of(habit));
         when(habitLogRepository.findByHabitAndDate(any(Habit.class), any(LocalDate.class))).thenReturn(Optional.empty());
         when(habitLogRepository.save(any(HabitLog.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -82,7 +88,8 @@ class HabitLogServiceImplTest {
 
     @Test
     void toggleToday_throwsHabitNotFoundException_whenHabitMissing() {
-        when(habitRepository.findById(99L)).thenReturn(Optional.empty());
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(99L, 100L)).thenReturn(Optional.empty());
         HabitLogRequest request = new HabitLogRequest(true, null);
 
         assertThatThrownBy(() -> habitLogService.toggleToday(99L, request))
@@ -98,7 +105,8 @@ class HabitLogServiceImplTest {
         LocalDate date = LocalDate.of(2026, 3, 30);
         HabitLog log = habitLog(30L, habit, date, true, LocalTime.of(8, 30), "ok");
 
-        when(habitRepository.findById(3L)).thenReturn(Optional.of(habit));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(3L, 100L)).thenReturn(Optional.of(habit));
         when(habitLogRepository.findByHabitAndDate(habit, date)).thenReturn(Optional.of(log));
 
         GetHabitLogResponse response = habitLogService.getHabitLogByDate(3L, date);
@@ -113,7 +121,8 @@ class HabitLogServiceImplTest {
     @Test
     void getHabitLogByDate_throwsHabitNotFoundException_whenHabitMissing() {
         LocalDate date = LocalDate.of(2026, 3, 30);
-        when(habitRepository.findById(404L)).thenReturn(Optional.empty());
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(404L, 100L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> habitLogService.getHabitLogByDate(404L, date))
                 .isInstanceOf(HabitNotFoundException.class);
@@ -124,7 +133,8 @@ class HabitLogServiceImplTest {
         Habit habit = habit(4L, "Meditate");
         LocalDate date = LocalDate.of(2026, 3, 30);
 
-        when(habitRepository.findById(4L)).thenReturn(Optional.of(habit));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(4L, 100L)).thenReturn(Optional.of(habit));
         when(habitLogRepository.findByHabitAndDate(habit, date)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> habitLogService.getHabitLogByDate(4L, date))
@@ -141,7 +151,8 @@ class HabitLogServiceImplTest {
         HabitLog firstLog = habitLog(50L, firstHabit, LocalDate.of(2026, 3, 29), true, LocalTime.of(6, 0), "good");
         HabitLog secondLog = habitLog(60L, secondHabit, LocalDate.of(2026, 3, 29), false, null, null);
 
-        when(habitLogRepository.findAll()).thenReturn(List.of(firstLog, secondLog));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitLogRepository.findAllByOwnerUserId(100L)).thenReturn(List.of(firstLog, secondLog));
 
         List<HabitLogResponse> result = habitLogService.getAllHabitLogs();
 
@@ -158,7 +169,8 @@ class HabitLogServiceImplTest {
         LocalDate date = LocalDate.of(2026, 3, 28);
         HabitLog log = habitLog(70L, habit, date, true, LocalTime.of(22, 0), null);
 
-        when(habitRepository.findById(7L)).thenReturn(Optional.of(habit));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(7L, 100L)).thenReturn(Optional.of(habit));
         when(habitLogRepository.findByHabitAndDate(habit, date)).thenReturn(Optional.of(log));
 
         habitLogService.deleteHabitLogByDate(7L, date);
@@ -171,7 +183,8 @@ class HabitLogServiceImplTest {
         Habit habit = habit(8L, "Journal");
         LocalDate date = LocalDate.of(2026, 3, 28);
 
-        when(habitRepository.findById(8L)).thenReturn(Optional.of(habit));
+        when(currentUserProvider.getCurrentUserId()).thenReturn(100L);
+        when(habitRepository.findByHabitIdAndOwnerUserId(8L, 100L)).thenReturn(Optional.of(habit));
         when(habitLogRepository.findByHabitAndDate(habit, date)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> habitLogService.deleteHabitLogByDate(8L, date))
