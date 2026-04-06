@@ -35,8 +35,8 @@ public class RefreshToken extends Timestamped {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @Column(nullable = false, unique = true, length = 512)
-    private String token;
+    @Column(name = "token_hash", nullable = false, unique = true, length = 64)
+    private String tokenHash;
 
     @Column(nullable = false)
     private LocalDateTime expiresAt;
@@ -44,8 +44,8 @@ public class RefreshToken extends Timestamped {
     @Version
     private Long version;
 
-    public void rotate(String token, LocalDateTime expiresAt) {
-        this.token = token;
+    public void rotate(String tokenHash, LocalDateTime expiresAt) {
+        this.tokenHash = tokenHash;
         this.expiresAt = expiresAt;
     }
 

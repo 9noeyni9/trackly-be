@@ -13,8 +13,8 @@ public class JpaRefreshTokenStore implements RefreshTokenStore {
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
-    public Optional<RefreshToken> findByToken(String token) {
-        return refreshTokenRepository.findByToken(token);
+    public Optional<RefreshToken> findByTokenHash(String tokenHash) {
+        return refreshTokenRepository.findByTokenHash(tokenHash);
     }
 
     @Override

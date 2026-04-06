@@ -9,6 +9,7 @@ import com.example.tracklybe.domain.user.entity.User;
 import com.example.tracklybe.domain.user.repository.UserRepository;
 import com.example.tracklybe.global.exception.UnauthorizedException;
 import com.example.tracklybe.global.security.JwtTokenProvider;
+import com.example.tracklybe.global.security.RefreshTokenHasher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,6 +27,7 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenStore refreshTokenStore;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenHasher refreshTokenHasher;
 
     @Override
     public LoginResponse login(LoginRequest loginRequest) {
@@ -46,7 +48,8 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedException("유효하지 않은 refresh token입니다.");
         }
 
-        RefreshToken savedToken = refreshTokenStore.findByToken(rawRefreshToken)
+        String refreshTokenHash = refreshTokenHasher.hash(rawRefreshToken);
+        RefreshToken savedToken = refreshTokenStore.findByTokenHash(refreshTokenHash)
                 .orElseThrow(() -> new UnauthorizedException("유효하지 않은 refresh token입니다."));
 
         if (savedToken.isExpired(LocalDateTime.now())) {
@@ -64,18 +67,19 @@ public class AuthServiceImpl implements AuthService {
     private LoginResponse issueTokens(User user) {
         String accessToken = jwtTokenProvider.generateAccessToken(user);
         String refreshToken = jwtTokenProvider.generateRefreshToken(user);
+        String refreshTokenHash = refreshTokenHasher.hash(refreshToken);
 
         LocalDateTime refreshExpiresAt = jwtTokenProvider.getRefreshTokenExpiresAt();
 
         RefreshToken tokenEntity = refreshTokenStore.findByUserId(user.getUserId())
                 .orElseGet(() -> RefreshToken.builder()
                         .user(user)
-                        .token(refreshToken)
+                        .tokenHash(refreshTokenHash)
                         .expiresAt(refreshExpiresAt)
                         .build());
 
         if (tokenEntity.getRefreshTokenId() != null) {
-            tokenEntity.rotate(refreshToken, refreshExpiresAt);
+            tokenEntity.rotate(refreshTokenHash, refreshExpiresAt);
         }
         try {
             refreshTokenStore.save(tokenEntity);
