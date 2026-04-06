@@ -10,6 +10,7 @@ import com.example.tracklybe.domain.user.repository.UserRepository;
 import com.example.tracklybe.global.exception.UnauthorizedException;
 import com.example.tracklybe.global.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,7 +77,11 @@ public class AuthServiceImpl implements AuthService {
         if (tokenEntity.getRefreshTokenId() != null) {
             tokenEntity.rotate(refreshToken, refreshExpiresAt);
         }
-        refreshTokenStore.save(tokenEntity);
+        try {
+            refreshTokenStore.save(tokenEntity);
+        } catch (OptimisticLockingFailureException e) {
+            throw new UnauthorizedException("동시에 갱신되어 refresh token이 무효화되었습니다. 다시 시도해주세요.");
+        }
 
         return LoginResponse.builder()
                 .accessToken(accessToken)
