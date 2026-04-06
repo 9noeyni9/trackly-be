@@ -12,7 +12,7 @@ public class RefreshTokenHasher {
 
     private static final String HMAC_ALGORITHM = "HmacSHA256";
 
-    @Value("${jwt.refresh-token-hash-secret:${jwt.secret}}")
+    @Value("${jwt.refresh-token-hash-secret}")
     private String hashSecret;
 
     public String hash(String rawToken) {
